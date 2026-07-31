@@ -208,4 +208,15 @@ mod tests {
         headers.insert(header::HOST, "schrodingers.life".parse().unwrap());
         assert!(!origin_is_allowed(&headers, None));
     }
+
+    #[test]
+    fn returning_observer_memorial_is_shipped() {
+        let html = include_str!("../web/index.html");
+        let javascript = include_str!("../web/app.js");
+
+        assert!(html.contains("id=\"memorial\""));
+        assert!(html.contains("Open the box again"));
+        assert!(javascript.contains("died while you were away"));
+        assert!(javascript.contains("localStorage"));
+    }
 }
