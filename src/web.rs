@@ -128,14 +128,13 @@ async fn observer(mut socket: WebSocket, state: Arc<AppState>) {
                 }
             }
             _ = updates.recv() => {
-                if let Ok(snapshot) = state.snapshot().await {
-                    if socket
+                if let Ok(snapshot) = state.snapshot().await
+                    && socket
                         .send(Message::Text(serde_json::to_string(&snapshot).unwrap().into()))
                         .await
                         .is_err()
-                    {
-                        break;
-                    }
+                {
+                    break;
                 }
             }
             _ = expiry.tick() => break,
