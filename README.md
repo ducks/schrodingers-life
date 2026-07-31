@@ -31,3 +31,25 @@ Configuration:
 
 `GET /healthz` checks the process and database and is suitable for a service
 health check. Dynamic state responses are marked `Cache-Control: no-store`.
+
+## Deploy
+
+Build the release binary, install it under `/opt/schrodingers-life`, and create
+the dedicated service account and writable data directory:
+
+```bash
+cargo build --release
+sudo useradd --system --home /var/lib/schrodingers-life schrodinger
+sudo install -d -o schrodinger -g schrodinger /var/lib/schrodingers-life
+sudo install -Dm755 target/release/schrodingers-life \
+  /opt/schrodingers-life/schrodingers-life
+sudo install -Dm644 deploy/schrodingers-life.service \
+  /etc/systemd/system/schrodingers-life.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now schrodingers-life
+```
+
+The example [`deploy/Caddyfile`](deploy/Caddyfile) terminates HTTPS and proxies
+both HTTP and WebSocket traffic. Copy it into the active Caddy configuration
+after pointing `schrodingers.life` at the server. Back up
+`/var/lib/schrodingers-life/lives.db` to preserve the graveyard.

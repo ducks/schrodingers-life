@@ -1,0 +1,25 @@
+[Unit]
+Description=Schrodinger's Life observation apparatus
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=schrodinger
+Group=schrodinger
+WorkingDirectory=/opt/schrodingers-life
+ExecStart=/opt/schrodingers-life/schrodingers-life
+Environment=SCHRODINGER_ADDR=127.0.0.1:3000
+Environment=SCHRODINGER_DB=/var/lib/schrodingers-life/lives.db
+Environment=SCHRODINGER_ORIGIN=https://schrodingers.life
+Restart=on-failure
+RestartSec=2
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/schrodingers-life
+
+[Install]
+WantedBy=multi-user.target
