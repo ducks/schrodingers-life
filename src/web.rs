@@ -25,6 +25,7 @@ pub fn router(state: Arc<AppState>, allowed_origin: Option<String>) -> Router {
         .route("/", get(index))
         .route("/app.js", get(javascript))
         .route("/style.css", get(stylesheet))
+        .route("/social-card.png", get(social_card))
         .route("/api/state", get(snapshot))
         .route("/healthz", get(health))
         .route("/observe", get(observe))
@@ -55,6 +56,16 @@ async fn stylesheet() -> impl IntoResponse {
     (
         [(header::CONTENT_TYPE, "text/css; charset=utf-8")],
         include_str!("../web/style.css"),
+    )
+}
+
+async fn social_card() -> impl IntoResponse {
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        include_bytes!("../web/social-card.png").as_slice(),
     )
 }
 
@@ -218,5 +229,18 @@ mod tests {
         assert!(html.contains("Open the box again"));
         assert!(javascript.contains("died while you were away"));
         assert!(javascript.contains("localStorage"));
+    }
+
+    #[test]
+    fn social_sharing_metadata_is_shipped() {
+        let html = include_str!("../web/index.html");
+        let javascript = include_str!("../web/app.js");
+        let social_card = include_str!("../web/social-card.svg");
+
+        assert!(html.contains("property=\"og:image\""));
+        assert!(html.contains("social-card.png"));
+        assert!(html.contains("name=\"twitter:card\""));
+        assert!(javascript.contains("navigator.share"));
+        assert!(social_card.contains("Schrödinger's Life"));
     }
 }

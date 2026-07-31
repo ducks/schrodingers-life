@@ -10,6 +10,8 @@ const elements = {
   memorialTitle: document.querySelector("#memorial-title"),
   memorialDetails: document.querySelector("#memorial-details"),
   openBox: document.querySelector("#open-box"),
+  record: document.querySelector("#record"),
+  share: document.querySelector("#share"),
 };
 
 const LAST_LIFE_KEY = "schrodingers-life:last-observed-life";
@@ -92,6 +94,9 @@ function render(next) {
     ? Date.now() + next.death_in_seconds * 1000
     : undefined;
   elements.observers.textContent = next.observers;
+  elements.record.textContent = next.longest_life
+    ? `Record: Life #${next.longest_life.id} · ${formatDuration(next.longest_life.duration_seconds)}`
+    : "No lifetime record yet.";
 
   if (next.alive && next.life) {
     const { creature, id, born_at } = next.life;
@@ -120,9 +125,40 @@ function render(next) {
       <article>
         <strong>Life #${life.id}</strong>
         <span>${life.shiny ? "shiny " : ""}${life.rarity} ${life.species}</span>
-        <small>Peak observation: ${life.peak_observers}</small>
+        <small>${formatDuration(life.duration_seconds)} · peak ${life.peak_observers}</small>
       </article>`).join("")
     : '<p class="muted">No previous lives. Yet.</p>';
+}
+
+function formatDuration(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const days = Math.floor(seconds / 86_400);
+  const hours = Math.floor((seconds % 86_400) / 3_600);
+  const minutes = Math.floor((seconds % 3_600) / 60);
+  if (days) return `${days}d ${hours}h`;
+  if (hours) return `${hours}h ${minutes}m`;
+  if (minutes) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
+}
+
+async function shareCurrentLife() {
+  const life = state?.life;
+  const text = life
+    ? `Life #${life.id} is alive because ${state.observers} ${state.observers === 1 ? "person is" : "people are"} looking.`
+    : "The box is empty. Your observation could begin a new life.";
+  const share = {
+    title: "Schrödinger's Life",
+    text,
+    url: "https://schrodingers.life/",
+  };
+
+  if (navigator.share) {
+    await navigator.share(share);
+  } else {
+    await navigator.clipboard.writeText(`${text} ${share.url}`);
+    elements.share.textContent = "Link copied";
+    setTimeout(() => { elements.share.textContent = "Share this life"; }, 1500);
+  }
 }
 
 setInterval(() => {
@@ -149,4 +185,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 elements.openBox.addEventListener("click", connect);
+elements.share.addEventListener("click", () => {
+  shareCurrentLife().catch(() => {});
+});
 resumeObservation();

@@ -36,6 +36,7 @@ pub struct Snapshot {
     pub observers: usize,
     pub death_in_seconds: Option<u64>,
     pub graveyard: Vec<LifeRecord>,
+    pub longest_life: Option<LifeRecord>,
 }
 
 impl AppState {
@@ -143,6 +144,7 @@ impl AppState {
             observers: world.observers.len(),
             death_in_seconds,
             graveyard: self.store.history(20)?,
+            longest_life: self.store.longest_life()?,
         })
     }
 }

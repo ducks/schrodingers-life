@@ -30,6 +30,7 @@ pub struct LifeRecord {
     pub born_at: String,
     pub died_at: String,
     pub peak_observers: usize,
+    pub duration_seconds: u64,
 }
 
 impl Store {
@@ -106,24 +107,42 @@ impl Store {
     pub fn history(&self, limit: usize) -> Result<Vec<LifeRecord>> {
         let connection = self.connection.lock().expect("database lock poisoned");
         let mut statement = connection.prepare(
-            "SELECT id, species, rarity, shiny, born_at, died_at, peak_observers
+            "SELECT id, species, rarity, shiny, born_at, died_at, peak_observers,
+                    MAX(0, CAST(ROUND((julianday(died_at) - julianday(born_at)) * 86400) AS INTEGER))
              FROM lives WHERE died_at IS NOT NULL ORDER BY id DESC LIMIT ?1",
         )?;
         let records = statement
-            .query_map([limit], |row| {
-                Ok(LifeRecord {
-                    id: row.get(0)?,
-                    species: row.get(1)?,
-                    rarity: row.get(2)?,
-                    shiny: row.get(3)?,
-                    born_at: row.get(4)?,
-                    died_at: row.get(5)?,
-                    peak_observers: row.get(6)?,
-                })
-            })?
+            .query_map([limit], life_record)?
             .collect::<rusqlite::Result<Vec<_>>>()?;
         Ok(records)
     }
+
+    pub fn longest_life(&self) -> Result<Option<LifeRecord>> {
+        let connection = self.connection.lock().expect("database lock poisoned");
+        let mut statement = connection.prepare(
+            "SELECT id, species, rarity, shiny, born_at, died_at, peak_observers,
+                    MAX(0, CAST(ROUND((julianday(died_at) - julianday(born_at)) * 86400) AS INTEGER))
+             FROM lives
+             WHERE died_at IS NOT NULL
+             ORDER BY (julianday(died_at) - julianday(born_at)) DESC, id ASC
+             LIMIT 1",
+        )?;
+        let mut records = statement.query_map([], life_record)?;
+        Ok(records.next().transpose()?)
+    }
+}
+
+fn life_record(row: &rusqlite::Row<'_>) -> rusqlite::Result<LifeRecord> {
+    Ok(LifeRecord {
+        id: row.get(0)?,
+        species: row.get(1)?,
+        rarity: row.get(2)?,
+        shiny: row.get(3)?,
+        born_at: row.get(4)?,
+        died_at: row.get(5)?,
+        peak_observers: row.get(6)?,
+        duration_seconds: row.get(7)?,
+    })
 }
 
 #[cfg(test)]
@@ -145,5 +164,28 @@ mod tests {
         let history = store.history(20).unwrap();
         assert_eq!(history.len(), 1);
         assert_eq!(history[0].id, 1);
+    }
+
+    #[test]
+    fn longest_life_returns_the_duration_record() {
+        let directory = tempfile::tempdir().unwrap();
+        let store = Store::open(directory.path().join("lives.db")).unwrap();
+        let connection = store.connection.lock().unwrap();
+        connection
+            .execute(
+                "INSERT INTO lives
+                 (seed, species, rarity, shiny, born_at, died_at, peak_observers)
+                 VALUES
+                 ('short', 'cat', 'common', 0, '2026-01-01T00:00:00Z', '2026-01-01T00:00:10Z', 1),
+                 ('record', 'duck', 'rare', 0, '2026-01-01T00:00:00Z', '2026-01-01T00:02:00Z', 8)",
+                [],
+            )
+            .unwrap();
+        drop(connection);
+
+        let record = store.longest_life().unwrap().unwrap();
+        assert_eq!(record.species, "duck");
+        assert_eq!(record.duration_seconds, 120);
+        assert_eq!(record.peak_observers, 8);
     }
 }
