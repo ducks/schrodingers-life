@@ -1,6 +1,6 @@
 [package]
 name = "schrodingers-life"
-version = "0.1.0"
+version = "20260730.0.0"
 edition = "2024"
 description = "A collective creature that is alive only while observed"
 license = "MIT"
