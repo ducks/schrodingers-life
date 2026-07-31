@@ -53,6 +53,19 @@ impl Store {
         })
     }
 
+    pub fn reconcile_unfinished_lives(&self) -> Result<usize> {
+        let died_at = Utc::now().to_rfc3339();
+        let updated = self
+            .connection
+            .lock()
+            .expect("database lock poisoned")
+            .execute(
+                "UPDATE lives SET died_at = ?1 WHERE died_at IS NULL",
+                [died_at],
+            )?;
+        Ok(updated)
+    }
+
     pub fn begin_life(&self, seed: String, creature: Creature) -> Result<Life> {
         let born_at = Utc::now();
         let connection = self.connection.lock().expect("database lock poisoned");
@@ -110,5 +123,27 @@ impl Store {
             })?
             .collect::<rusqlite::Result<Vec<_>>>()?;
         Ok(records)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::creature;
+
+    #[test]
+    fn unfinished_lives_are_closed_during_reconciliation() {
+        let directory = tempfile::tempdir().unwrap();
+        let database = directory.path().join("lives.db");
+        let store = Store::open(database).unwrap();
+        let seed = "interrupted-life".to_owned();
+        store
+            .begin_life(seed.clone(), creature::roll(&seed))
+            .unwrap();
+
+        assert_eq!(store.reconcile_unfinished_lives().unwrap(), 1);
+        let history = store.history(20).unwrap();
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0].id, 1);
     }
 }

@@ -5,7 +5,9 @@ A collective creature that is alive only while somebody is observing it.
 Visiting the site opens a WebSocket observation. Visible browser tabs keep the
 current life alive. When the final observer leaves, a 30-second decoherence
 countdown begins. If nobody returns, that creature dies permanently and joins
-the graveyard. The next observer begins a new life.
+the graveyard. The next observer begins a new life. If the apparatus restarts,
+any life that was active at shutdown is recorded as having died while it was
+offline.
 
 ## Run
 
