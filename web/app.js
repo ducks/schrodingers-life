@@ -6,8 +6,13 @@ const elements = {
   lifetime: document.querySelector("#lifetime"),
   countdown: document.querySelector("#countdown"),
   graveyard: document.querySelector("#graveyard"),
+  memorial: document.querySelector("#memorial"),
+  memorialTitle: document.querySelector("#memorial-title"),
+  memorialDetails: document.querySelector("#memorial-details"),
+  openBox: document.querySelector("#open-box"),
 };
 
+const LAST_LIFE_KEY = "schrodingers-life:last-observed-life";
 let socket;
 let state;
 let frame = 0;
@@ -16,6 +21,7 @@ let deathEndsAt;
 
 function connect() {
   if (document.hidden || socket?.readyState === WebSocket.OPEN) return;
+  elements.memorial.hidden = true;
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   socket = new WebSocket(`${protocol}//${location.host}/observe`);
 
@@ -39,8 +45,45 @@ function disconnect() {
 }
 
 async function refresh() {
+  render(await fetchState());
+}
+
+async function fetchState() {
   const response = await fetch("/api/state", { cache: "no-store" });
-  render(await response.json());
+  return response.json();
+}
+
+function rememberedLife() {
+  try {
+    return Number(localStorage.getItem(LAST_LIFE_KEY)) || undefined;
+  } catch (_) {
+    return undefined;
+  }
+}
+
+function rememberLife(id) {
+  try {
+    localStorage.setItem(LAST_LIFE_KEY, String(id));
+  } catch (_) {}
+}
+
+async function resumeObservation() {
+  if (document.hidden) return;
+  const snapshot = await fetchState();
+  const priorLife = rememberedLife();
+  const death = !snapshot.alive
+    ? snapshot.graveyard.find((life) => life.id === priorLife)
+    : undefined;
+
+  render(snapshot);
+  if (death) {
+    elements.memorialTitle.textContent = `Life #${death.id} died while you were away.`;
+    elements.memorialDetails.textContent =
+      `${death.rarity} ${death.species} · peak observation ${death.peak_observers}`;
+    elements.memorial.hidden = false;
+    return;
+  }
+  connect();
 }
 
 function render(next) {
@@ -52,6 +95,7 @@ function render(next) {
 
   if (next.alive && next.life) {
     const { creature, id, born_at } = next.life;
+    rememberLife(id);
     elements.status.textContent = "ALIVE";
     elements.status.className = "status alive";
     elements.creature.textContent = creature.frames[frame % creature.frames.length].join("\n");
@@ -101,7 +145,8 @@ setInterval(() => {
 }, 500);
 
 document.addEventListener("visibilitychange", () => {
-  document.hidden ? disconnect() : connect();
+  document.hidden ? disconnect() : resumeObservation();
 });
 
-connect();
+elements.openBox.addEventListener("click", connect);
+resumeObservation();

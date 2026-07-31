@@ -7,7 +7,8 @@ current life alive. When the final observer leaves, a 30-second decoherence
 countdown begins. If nobody returns, that creature dies permanently and joins
 the graveyard. The next observer begins a new life. If the apparatus restarts,
 any life that was active at shutdown is recorded as having died while it was
-offline.
+offline. Returning observers are shown a memorial for the life that died while
+they were away before they can open the box again.
 
 ## Run
 

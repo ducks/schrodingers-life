@@ -26,6 +26,30 @@ h1 { margin: .25rem 0; font-size: clamp(2.2rem, 8vw, 4.5rem); letter-spacing: -.
 .eyebrow { color: #71d69f; text-transform: uppercase; letter-spacing: .16em; font-size: .75rem; }
 .premise, .muted { color: #8b9691; }
 
+.memorial {
+  border: 1px solid #6a3436;
+  background: rgba(34, 10, 12, .88);
+  margin-bottom: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.memorial[hidden] { display: none; }
+.memorial h2 { margin: .5rem 0; color: #e09395; }
+.memorial p { text-transform: capitalize; color: #b5aaa8; }
+
+button {
+  appearance: none;
+  border: 1px solid #71d69f;
+  background: #152b21;
+  color: #d8dedb;
+  cursor: pointer;
+  font: inherit;
+  padding: .75rem 1rem;
+}
+
+button:hover { background: #204231; }
+
 .apparatus {
   border: 1px solid #30453c;
   background: rgba(7, 12, 10, .8);
