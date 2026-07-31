@@ -1,0 +1,22 @@
+# Schrödinger's Life
+
+A collective creature that is alive only while somebody is observing it.
+
+Visiting the site opens a WebSocket observation. Visible browser tabs keep the
+current life alive. When the final observer leaves, a 30-second decoherence
+countdown begins. If nobody returns, that creature dies permanently and joins
+the graveyard. The next observer begins a new life.
+
+## Run
+
+```bash
+cargo run
+```
+
+Then open <http://127.0.0.1:3000>.
+
+Configuration:
+
+- `SCHRODINGER_ADDR` — listen address, default `127.0.0.1:3000`
+- `SCHRODINGER_DB` — SQLite path, default `schrodingers-life.db`
+- `SCHRODINGER_GRACE_SECONDS` — final-observer grace period, default `30`

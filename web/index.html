@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Schrödinger's Life</title>
+    <meta name="description" content="It is alive only while someone is looking.">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">A collective observation</p>
+        <h1>Schrödinger's Life</h1>
+        <p class="premise">It is alive only while someone is looking.</p>
+      </header>
+
+      <section class="apparatus" aria-live="polite">
+        <div class="status-row">
+          <span id="status" class="status">MEASURING</span>
+          <span><strong id="observers">0</strong> observers</span>
+        </div>
+        <pre id="creature" class="creature">Opening the box…</pre>
+        <div id="identity" class="identity"></div>
+        <p id="lifetime" class="lifetime"></p>
+        <p id="countdown" class="countdown"></p>
+      </section>
+
+      <section>
+        <h2>Previous lives</h2>
+        <div id="graveyard" class="graveyard">
+          <p class="muted">No prior observations.</p>
+        </div>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
