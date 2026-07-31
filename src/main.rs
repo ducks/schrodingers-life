@@ -28,6 +28,9 @@ async fn main() -> Result<()> {
     let address: SocketAddr = env::var("SCHRODINGER_ADDR")
         .unwrap_or_else(|_| "127.0.0.1:3000".into())
         .parse()?;
+    let allowed_origin = env::var("SCHRODINGER_ORIGIN")
+        .ok()
+        .map(|origin| origin.trim_end_matches('/').to_owned());
 
     let state = Arc::new(AppState::new(
         Store::open(database)?,
@@ -36,6 +39,6 @@ async fn main() -> Result<()> {
     let listener = tokio::net::TcpListener::bind(address).await?;
 
     info!(%address, grace_seconds, "observation apparatus online");
-    axum::serve(listener, web::router(state)).await?;
+    axum::serve(listener, web::router(state, allowed_origin)).await?;
     Ok(())
 }

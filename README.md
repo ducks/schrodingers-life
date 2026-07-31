@@ -22,3 +22,9 @@ Configuration:
 - `SCHRODINGER_ADDR` — listen address, default `127.0.0.1:3000`
 - `SCHRODINGER_DB` — SQLite path, default `schrodingers-life.db`
 - `SCHRODINGER_GRACE_SECONDS` — final-observer grace period, default `30`
+- `SCHRODINGER_ORIGIN` — optional public origin such as
+  `https://schrodingers.life`; WebSocket observations otherwise require an
+  origin matching the request host
+
+`GET /healthz` checks the process and database and is suitable for a service
+health check. Dynamic state responses are marked `Cache-Control: no-store`.
