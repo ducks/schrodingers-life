@@ -65,6 +65,16 @@ button:hover { background: #204231; }
 .identity { text-align: center; text-transform: capitalize; font-weight: 700; }
 .lifetime, .countdown { text-align: center; color: #8b9691; }
 .countdown { min-height: 1.3rem; color: #d6be71; }
+.apparatus-actions {
+  align-items: center;
+  border-top: 1px solid #25312c;
+  color: #8b9691;
+  display: flex;
+  font-size: .8rem;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
 
 h2 { margin-top: 3rem; font-size: 1rem; text-transform: uppercase; letter-spacing: .14em; }
 .graveyard { display: grid; gap: .5rem; }
@@ -80,5 +90,6 @@ h2 { margin-top: 3rem; font-size: 1rem; text-transform: uppercase; letter-spacin
 
 @media (max-width: 520px) {
   main { padding-top: 2.5rem; }
+  .apparatus-actions { align-items: stretch; flex-direction: column; gap: 1rem; }
   .graveyard article { grid-template-columns: 1fr; gap: .25rem; }
 }
