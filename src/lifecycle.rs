@@ -40,6 +40,13 @@ pub struct Snapshot {
 
 impl AppState {
     pub fn new(store: Store, grace: Duration) -> Result<Self> {
+        let reconciled = store.reconcile_unfinished_lives()?;
+        if reconciled > 0 {
+            tracing::warn!(
+                reconciled,
+                "closed lives interrupted while the apparatus was offline"
+            );
+        }
         let (updates, _) = broadcast::channel(32);
         Ok(Self {
             inner: Mutex::new(World {
@@ -180,5 +187,23 @@ mod tests {
         assert_eq!(snapshot.observers, 1);
         assert!(snapshot.graveyard.is_empty());
         state.stop_observing(second).await;
+    }
+
+    #[tokio::test]
+    async fn startup_moves_an_interrupted_life_to_the_graveyard() {
+        let directory = tempfile::tempdir().unwrap();
+        let database = directory.path().join("test.db");
+        let store = Store::open(database.clone()).unwrap();
+        let seed = "life-before-restart".to_owned();
+        store
+            .begin_life(seed.clone(), creature::roll(&seed))
+            .unwrap();
+        drop(store);
+
+        let state = AppState::new(Store::open(database).unwrap(), Duration::from_secs(30)).unwrap();
+        let snapshot = state.snapshot().await.unwrap();
+
+        assert!(!snapshot.alive);
+        assert_eq!(snapshot.graveyard.len(), 1);
     }
 }
